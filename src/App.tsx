@@ -37,6 +37,7 @@ import { classify_condition } from "./engine/conditions";
 import { conditionCoordinate } from "./engine/conditionPlot";
 import { buildDistributionBreakdown } from "./engine/distributionTreemap";
 import { resolvePersonReferences } from "./engine/presentation";
+import { bundledCaseLibrary } from "./engine/bundledCaseLibrary";
 import type { EstateProperty, Person, PropertyType, Scenario } from "./types/scenario";
 
 const iconProps = { size: 20, weight: "regular" as const };
@@ -667,18 +668,23 @@ export default function App() {
         if (!response.ok) throw new Error("Unable to load the saved case library.");
         return response.json() as Promise<{ cases?: Scenario[] }>;
       })
-      .then((data) => { if (!cancelled) setScenarios(Array.isArray(data.cases) ? activeCases(data.cases) : []); })
+      .then((data) => {
+        const savedCases = Array.isArray(data.cases) ? activeCases(data.cases) : [];
+        if (!savedCases.length) throw new Error("The saved case library is empty.");
+        if (!cancelled) setScenarios(savedCases);
+      })
       .catch((error) => {
         console.warn(error);
-        if (!isLocalRuntime) return;
+        let fallbackCases = bundledCaseLibrary;
         try {
           const localCases = JSON.parse(localStorage.getItem(localCasesKey) ?? "[]") as unknown;
-          if (!cancelled && Array.isArray(localCases)) {
+          if (isLocalRuntime && Array.isArray(localCases) && localCases.length) {
             const filtered = activeCases(localCases as Scenario[]);
             localStorage.setItem(localCasesKey, JSON.stringify(filtered));
-            setScenarios(filtered);
+            fallbackCases = filtered;
           }
         } catch (localError) { console.warn(localError); }
+        if (!cancelled) setScenarios(activeCases(fallbackCases));
       })
       .finally(() => { if (!cancelled) setLibraryLoading(false); });
     return () => { cancelled = true; };
