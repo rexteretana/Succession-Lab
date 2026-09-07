@@ -454,14 +454,14 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
             ].filter(Boolean).join(" ");
             return <div className={classes} style={{ left: position.x - nodeWidth / 2, top: position.y }} key={id} role="button" tabIndex={0} onPointerEnter={() => setFocusedPerson(id)} onPointerLeave={() => setFocusedPerson(undefined)} onFocus={() => setFocusedPerson(id)} onBlur={() => setFocusedPerson(undefined)} aria-label={`Move ${person.name}`} onPointerDown={(event) => beginNodeDrag(event, id)} onKeyDown={(event) => nudgeNode(event, id)}><PersonNode person={person} /></div>;
           })}
-          <div className="graph-legend">
-            <span><i className="spouse-key" /> Spouse</span>
-            <span><i className="solid-line" /> Line of descent</span>
-            <span><i className="dash-line" /> Representation</span>
-            <span><i className="devise-key" /> Devise</span>
-            <span><i className="legacy-key" /> Legacy</span>
-            <span><i className="substitution-key-line" /> Substitution</span>
-          </div>
+        </div>
+        <div className="graph-legend" aria-label="Relationship line legend">
+          <span><i className="spouse-key" /> Spouse</span>
+          <span><i className="solid-line" /> Line of descent</span>
+          <span><i className="dash-line" /> Representation</span>
+          <span><i className="devise-key" /> Devise</span>
+          <span><i className="legacy-key" /> Legacy</span>
+          <span><i className="substitution-key-line" /> Substitution</span>
         </div>
         {!compact && <div className="graph-help"><span><Mouse size={17} /> Drag canvas to pan</span><i /> <span>Scroll to zoom</span><i /> <span>Drag people to rearrange</span></div>}
       </div>

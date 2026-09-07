@@ -322,7 +322,6 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .graph-connection.connection-active .edge { stroke-width:2.6; }
 .graph-connection.connection-active .attached-edge-label rect { stroke-width:1.6; }
 .positioned-node:hover .person-node, .positioned-node:focus-visible .person-node { box-shadow:0 8px 24px #6661bb24; }
-.graph-legend .substitution-key { border-top:2px dashed #7770cb; }
 @media(prefers-reduced-motion:no-preference) {
   .graph-connection { transition:opacity .18s ease; }
   .graph-connection.connection-active .disposition-edge.edge, .graph-connection.connection-active .representation-edge.edge { animation:relationship-flow 1.8s linear infinite; }
@@ -350,7 +349,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .person-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 auto; border-radius: 10px; color: var(--accent); background: var(--accent-tint); }
 .person-node div { display: grid; gap: 2px; }
 .person-node strong { font-size: 13px; }.person-node span, .person-node small { color: var(--muted); font-size: 11px; }
-.graph-legend { position: absolute; left: 16px; bottom: 16px; display: grid; gap: 8px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.9); backdrop-filter: blur(8px); }
+.graph-legend { position: absolute; right: 16px; top: 16px; z-index: 4; display: grid; gap: 8px; padding: 11px 13px; border: 1px solid var(--border); border-radius: 11px; background: rgba(255,255,255,.92); box-shadow: 0 6px 22px rgba(54,59,73,.06); backdrop-filter: blur(9px); pointer-events: none; }
 .graph-legend span { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 10px; }
 .graph-legend i { width: 24px; border-top: 1.5px solid #555862; }.graph-legend .dash-line { border-top: 2px dashed var(--accent); }.graph-legend .spouse-key { border-top-width: 2px; }.graph-legend .disposition-key { border-top: 2px dotted #42a17d; }
 .empty-graph { min-height: 500px; }
@@ -741,8 +740,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .panel-title { flex-shrink: 0; }
 .focused-graph { display: flex; flex-direction: column; }
 .graph-scroll, .graph-fullscreen .graph-scroll { flex: 1; height: auto; min-height: 0; }
-.substitution-edge { stroke: #6764e8; stroke-dasharray: 8 4 2 4; }
-.substitution-key-line { border-top: 2px dashed #6764e8; }
+.substitution-edge { stroke: #6764e8; stroke-width: 2; stroke-dasharray: 8 4 2 4; stroke-linecap: round; }
+.graph-legend .substitution-key-line { height: 2px; border: 0; background: linear-gradient(to right, #6764e8 0 8px, transparent 8px 12px, #6764e8 12px 14px, transparent 14px 18px); background-size: 18px 2px; }
 .graph-toolbar > button { width: 40px; height: 40px; }
 .calculation-name strong, .step, .distribution-row { font-size: 13px; }
 .step small { font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
