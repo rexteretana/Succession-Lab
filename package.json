@@ -1,0 +1,32 @@
+{
+  "name": "succession-scenario-lab",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build && esbuild server/index.ts --bundle --platform=browser --format=esm --loader:.jsonl=text --loader:.html=text --loader:.css=text --loader:.js=text --outfile=dist/server/index.js",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "generate:advanced-library": "node scripts/generate-advanced-library.mjs",
+    "db:generate": "drizzle-kit generate"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "^2.1.10",
+    "drizzle-orm": "0.45.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20260515.1",
+    "@openai/sites-vite-plugin": "0.2.0",
+    "@types/react": "^19.1.10",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.2",
+    "drizzle-kit": "0.31.10",
+    "esbuild": "0.25.12",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.4",
+    "vitest": "^3.2.4"
+  }
+}

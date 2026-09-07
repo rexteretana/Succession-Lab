@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://succession-scenario-lab.local/schema/scenario-v1.json",
+  "title": "Succession Scenario Lab scenario",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "title", "estate", "persons", "relationships", "computations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
+    "difficulty": { "type": "integer", "minimum": 1 },
+    "scenarioType": { "enum": ["fictional", "jurisprudence"] },
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "default": "PHP" },
+    "estate": { "$ref": "#/$defs/estate" },
+    "persons": { "type": "array", "items": { "$ref": "#/$defs/person" } },
+    "relationships": { "type": "array", "items": { "$ref": "#/$defs/relationship" } },
+    "dispositions": { "type": "array", "items": { "$ref": "#/$defs/disposition" } },
+    "conditions": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+    "computations": { "type": "array", "items": { "$ref": "#/$defs/computation" } },
+    "story": { "$ref": "#/$defs/story" },
+    "explanation": { "type": "string" },
+    "source": { "$ref": "#/$defs/source" }
+    ,"expectedDistribution": { "type": "array", "items": { "$ref": "#/$defs/expectedDistribution" } }
+    ,"computationGuide": { "type": "array", "items": { "$ref": "#/$defs/computationGuideStep" } }
+  },
+  "$defs": {
+    "money": { "type": "number", "minimum": 0 },
+    "estate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["assets", "liabilities"],
+      "properties": {
+        "assets": { "$ref": "#/$defs/money" },
+        "liabilities": { "$ref": "#/$defs/money" },
+        "properties": { "type": "array", "items": { "$ref": "#/$defs/property" } },
+        "generalLiabilities": { "type": "array", "items": { "$ref": "#/$defs/generalLiability" } }
+      }
+    },
+    "property": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "propertyType", "ownershipClassification", "grossValue"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "propertyType": { "enum": ["real_property", "cash", "vehicle", "securities", "business_interest", "jewelry", "intellectual_property", "receivable", "other_personal_property"] },
+        "ownershipClassification": { "enum": ["exclusive", "conjugal", "community", "co_owned", "disputed"] },
+        "grossValue": { "$ref": "#/$defs/money" },
+        "encumbrances": { "type": "array", "items": { "$ref": "#/$defs/encumbrance" } },
+        "valuationDate": { "type": "string", "format": "date" },
+        "description": { "type": "string" }
+      }
+    },
+    "encumbrance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "amount"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "amount": { "$ref": "#/$defs/money" }
+      }
+    },
+    "generalLiability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "amount"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "amount": { "$ref": "#/$defs/money" }
+      }
+    },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "role"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["living", "deceased", "predeceased"] },
+        "note": { "type": "string" },
+        "generation": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "type"],
+      "properties": {
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["spouse", "parent", "representation", "substitution"] }
+      }
+    },
+    "disposition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "beneficiaryId", "source"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": { "enum": ["devise", "legacy", "institution"] },
+        "beneficiaryId": { "type": "string", "minLength": 1 },
+        "source": { "enum": ["specific_property", "general_estate"] },
+        "propertyId": { "type": "string", "minLength": 1 },
+        "amount": { "$ref": "#/$defs/money" },
+        "fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "conditionId": { "type": "string", "minLength": 1 },
+        "substitutionIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "description": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "source": { "const": "specific_property" } } },
+          "then": { "required": ["propertyId"] }
+        }
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 },
+        "classification": { "type": "array", "items": { "type": "string" } },
+        "substitutionType": { "enum": ["simple", "compendious", "compedious", "reciprocal", "brief", "fideicommissary", "feidicommissary", "none"] },
+        "substitutionNote": { "type": "string" }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "narrative": { "type": "string" },
+        "deathDate": { "type": "string", "format": "date" },
+        "deathPlace": { "type": "string" },
+        "willDate": { "type": "string", "format": "date" },
+        "circumstances": { "type": "string" },
+        "keyFacts": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "computation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["module", "legitimateChildLines"],
+          "properties": {
+            "module": { "const": "legitimate_child_legitime" },
+            "netEstate": { "$ref": "#/$defs/money" },
+            "legitimateChildLines": { "type": "integer", "minimum": 1 },
+            "collectiveFraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["module", "legitimateChildLines"],
+          "properties": {
+            "module": { "const": "spouse_concurrence" },
+            "netEstate": { "$ref": "#/$defs/money" },
+            "legitimateChildLines": { "type": "integer", "minimum": 1 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["module", "branchShare", "representativeIds"],
+          "properties": {
+            "module": { "const": "representation" },
+            "branchShare": { "$ref": "#/$defs/money" },
+            "representativeIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string" } }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["module", "vacantShare", "substitutes"],
+          "properties": {
+            "module": { "const": "reciprocal_substitution" },
+            "vacantShare": { "$ref": "#/$defs/money" },
+            "substitutes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["personId", "weight"],
+                "properties": {
+                  "personId": { "type": "string", "minLength": 1 },
+                  "weight": { "type": "number", "exclusiveMinimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["module", "title", "total", "steps"],
+          "properties": {
+            "module": { "const": "formula" },
+            "title": { "type": "string", "minLength": 1 },
+            "total": { "$ref": "#/$defs/money" },
+            "steps": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["label", "expression", "value"],
+                "properties": {
+                  "label": { "type": "string", "minLength": 1 },
+                  "expression": { "type": "string", "minLength": 1 },
+                  "value": { "$ref": "#/$defs/money" }
+                }
+              }
+            },
+            "allocations": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/$defs/money" }
+            }
+          }
+        }
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "grNo": { "type": "string" },
+        "date": { "type": "string" },
+        "treatment": { "enum": ["exact", "case-inspired"] }
+        ,"url": { "type": "string", "format": "uri" }
+      }
+    },
+    "expectedDistribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["personId", "amount", "mechanisms"],
+      "properties": {
+        "personId": { "type": "string", "minLength": 1 },
+        "amount": { "$ref": "#/$defs/money" },
+        "mechanisms": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["legitime", "free_portion", "devise", "legacy", "representation", "substitution"] }
+        },
+        "propertyIds": { "type": "array", "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "rationale": { "type": "string" }
+      }
+    },
+    "computationGuideStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "explanation"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "explanation": { "type": "string", "minLength": 1 },
+        "expression": { "type": "string" },
+        "result": { "$ref": "#/$defs/money" }
+      }
+    }
+  }
+}

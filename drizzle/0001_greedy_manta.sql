@@ -1,0 +1,1 @@
+CREATE INDEX `idx_cases_decision_date` ON `cases` (`decision_date`);
