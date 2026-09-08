@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build && esbuild server/index.ts --bundle --platform=browser --format=esm --loader:.jsonl=text --loader:.html=text --loader:.css=text --loader:.js=text --outfile=dist/server/index.js",
     "preview": "vite preview",
     "test": "vitest run",
-    "generate:advanced-library": "node scripts/generate-advanced-library.mjs",
+    "generate:advanced-library": "node scripts/generate-advanced-library.mjs && node scripts/reconcile-library.mjs",
+    "reconcile:library": "node scripts/reconcile-library.mjs",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {

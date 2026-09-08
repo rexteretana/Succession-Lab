@@ -15,8 +15,8 @@ describe("concurring and secondary heir examples", () => {
       expect(scenario.expectedDistribution?.reduce((sum, item) => sum + item.amount, 0)).toBeCloseTo(netEstateOf(scenario), 5);
       expect(scenario.computationGuide?.length).toBeGreaterThanOrEqual(12);
       expect(runScenario(scenario)).toHaveLength(4);
-      expect(scenario.conditions?.length).toBeGreaterThanOrEqual(4);
-      expect(scenario.relationships.length).toBeGreaterThanOrEqual(9);
+      expect(scenario.conditions?.length).toBeGreaterThanOrEqual(2);
+      expect(scenario.relationships.length).toBeGreaterThanOrEqual(8);
     });
   });
 

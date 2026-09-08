@@ -9,3 +9,9 @@ const sources = [advancedCases, example16, examples17To20];
 export const bundledCaseLibrary: Scenario[] = Array.from(
   new Map(sources.flatMap(parseJsonl).map((scenario) => [scenario.id, scenario])).values(),
 );
+
+/** Refresh shipped examples; preserve separately identified imported cases. */
+export function currentCaseLibrary(saved: Scenario[]): Scenario[] {
+  const shipped = new Set(bundledCaseLibrary.map(s => s.id));
+  return [...bundledCaseLibrary, ...saved.filter(s => !shipped.has(s.id))];
+}

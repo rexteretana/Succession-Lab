@@ -741,6 +741,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .focused-graph { display: flex; flex-direction: column; }
 .graph-scroll, .graph-fullscreen .graph-scroll { flex: 1; height: auto; min-height: 0; }
 .substitution-edge { stroke: #6764e8; stroke-width: 2; stroke-dasharray: 8 4 2 4; stroke-linecap: round; }
+.attached-edge-label.substitution-edge rect { fill: #f6f5ff; stroke: #cdc9fb; }
+.attached-edge-label.substitution-edge text { fill: #514aba; }
+.beneficiary-reconciliation { grid-column: 1 / -1; }
+.beneficiary-reconciliation p { font-size: 12px; line-height: 1.6; }
 .graph-legend .substitution-key-line { height: 2px; border: 0; background: linear-gradient(to right, #6764e8 0 8px, transparent 8px 12px, #6764e8 12px 14px, transparent 14px 18px); background-size: 18px 2px; }
 .graph-toolbar > button { width: 40px; height: 40px; }
 .calculation-name strong, .step, .distribution-row { font-size: 13px; }

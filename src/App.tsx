@@ -37,7 +37,7 @@ import { classify_condition } from "./engine/conditions";
 import { conditionCoordinate } from "./engine/conditionPlot";
 import { buildDistributionBreakdown } from "./engine/distributionTreemap";
 import { resolvePersonReferences } from "./engine/presentation";
-import { bundledCaseLibrary } from "./engine/bundledCaseLibrary";
+import { bundledCaseLibrary, currentCaseLibrary } from "./engine/bundledCaseLibrary";
 import type { EstateProperty, Person, PropertyType, Scenario } from "./types/scenario";
 
 const iconProps = { size: 20, weight: "regular" as const };
@@ -407,7 +407,8 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
             {scenario.relationships.filter((relationship) => relationship.type === "substitution").map((relationship, index) => {
               const from = positionOf(relationship.from); const to = positionOf(relationship.to);
               if (!from || !to) return null;
-              return <GraphEdge key={`substitution-${index}`} className="substitution-edge" tone={edgeTone(relationship.from,relationship.to)} d={`M ${from.x + nodeWidth / 2} ${from.y + 39} H ${Math.max(from.x,to.x) + 145 + index * 20} V ${to.y + 39} H ${to.x + nodeWidth / 2}`} />;
+              const substitutionLabel = relationship.substitutionType?.replace('compedious', 'compendious').replace('feidicommissary', 'fideicommissary') ?? 'Substitution — type not supplied';
+              return <GraphEdge key={`substitution-${index}`} label={substitutionLabel} className="substitution-edge" tone={edgeTone(relationship.from,relationship.to)} d={`M ${from.x + nodeWidth / 2} ${from.y + 39} H ${Math.max(from.x,to.x) + 145 + index * 20} V ${to.y + 39} H ${to.x + nodeWidth / 2}`} />;
             })}
             {scenario.relationships.filter((relationship) => relationship.type === "spouse").map((relationship, index) => {
               const from = positionOf(relationship.from); const to = positionOf(relationship.to);
@@ -566,13 +567,13 @@ function ConditionsView({ scenario }: { scenario?: Scenario }) {
       <div className="condition-list">{conditions.map((condition, index) => {
         const axes = classify_condition(condition);
         const plotted = Boolean(conditionCoordinate(condition));
-        const relatedDispositions = scenario.dispositions?.filter((disposition) => disposition.conditionId === condition.id) ?? [];
+        const relatedDispositions = scenario.dispositions?.filter((disposition) => disposition.conditionId === condition.id || disposition.conditionIds?.includes(condition.id)) ?? [];
         const substitutionType = condition.substitutionType && condition.substitutionType !== "none" ? condition.substitutionType : undefined;
         const substitutionLabel = substitutionType ? typeLabels[substitutionType] : "No substitution stated";
         return <article className="condition-card" id={`condition-${condition.id}`} key={condition.id}>
-          <div className="condition-card-header"><span className="condition-index">{index + 1}</span><div className="condition-header-copy"><div className="condition-title-row"><strong>{plotted ? "Condition" : "Substitution-only clause"} {index + 1}</strong><span className="substitution-chip">{substitutionLabel}</span></div><p>{condition.text}</p></div></div>
+          <div className="condition-card-header"><span className="condition-index">{index + 1}</span><div className="condition-header-copy"><div className="condition-title-row"><strong>{plotted ? "Condition" : "Will clause"} {index + 1}</strong><span className="substitution-chip">{substitutionLabel}</span></div><p>{condition.text}</p></div></div>
           <div className="condition-card-body"><div className="condition-dna"><small>Three-axis classification</small>{plotted ? <div className="dna-strip"><span>{axes.conduct}</span><i>/</i><span>{axes.control}</span><i>/</i><span>{axes.effect}</span></div> : <div className="dna-strip"><span>Not applicable — no additional condition</span></div>}</div>
-          {plotted ? <div className="condition-axes"><div><small>Conduct</small><strong>{axes.conduct}</strong><span>{axes.conduct === "positive" ? "An act must occur" : "An act must be avoided"}</span></div><div><small>Control</small><strong>{axes.control}</strong><span>{axes.control === "potestative" ? "Controlled by the beneficiary" : axes.control === "casual" ? "Chance or a third party" : "Beneficiary plus external factor"}</span></div><div><small>Effect</small><strong>{axes.effect}</strong><span>{axes.effect === "suspensive" ? "Right waits for fulfillment" : "Right may later end"}</span></div></div> : <div className="condition-not-applicable"><strong>Correctly not plotted</strong><span>This substitution operates on its stated trigger without a separate condition to classify.</span></div>}
+          {plotted ? <div className="condition-axes"><div><small>Conduct</small><strong>{axes.conduct}</strong><span>{axes.conduct === "positive" ? "An act must occur" : "An act must be avoided"}</span></div><div><small>Control</small><strong>{axes.control}</strong><span>{axes.control === "potestative" ? "Controlled by the beneficiary" : axes.control === "casual" ? "Chance or a third party" : "Beneficiary plus external factor"}</span></div><div><small>Effect</small><strong>{axes.effect}</strong><span>{axes.effect === "suspensive" ? "Subject to fulfillment and applicable security rules" : "Right may later end"}</span></div></div> : <div className="condition-not-applicable"><strong>Not a separately plotted condition</strong><span>A substitution, term, mode, or invalid restraint is not automatically a three-axis condition. Read the stated legal effect below.</span></div>}
           <div className="condition-links"><strong>Linked dispositions</strong>{relatedDispositions.length ? relatedDispositions.map((disposition) => <p key={disposition.id}>{disposition.kind}: {scenario.persons.find((person) => person.id === disposition.beneficiaryId)?.name}{disposition.description ? ` — ${disposition.description}` : ""}</p>) : <p>No disposition in this case references this condition.</p>}<small>Classification is supplied by the case file. Read the clause and its explanation for the applicable outcome.</small></div></div>
           {condition.substitutionNote && <div className="condition-note">{condition.substitutionNote}</div>}
         </article>;
@@ -589,7 +590,7 @@ function ComputationPanel({ scenario }: { scenario?: Scenario }) {
     if (scenario.computationGuide?.length) {
       return scenario.computationGuide.map((step) => ({
         title: step.title,
-        detail: `${step.explanation}${step.expression ? ` ${readableArithmetic(step.expression)}${step.result != null ? ` = ${money(step.result, currency)}` : ""}.` : ""}`,
+        detail: `${step.explanation}${step.expression ? ` ${readableArithmetic(step.expression)}${step.result != null ? ` = ${step.resultUnit ? new Intl.NumberFormat('en-PH', { maximumFractionDigits: 6 }).format(step.result) : money(step.result, currency)}` : ""}.` : ""}`,
       }));
     }
     const items: Array<{ title: string; detail: string }> = [{
@@ -643,6 +644,12 @@ function ComputationPanel({ scenario }: { scenario?: Scenario }) {
             <div className="distribution-total"><span>Total distributed</span><strong>{money(scenario.expectedDistribution.reduce((sum, item) => sum + item.amount, 0), scenario.currency)}</strong></div>
           </section> : null}
           {derivation.length > 0 && <div className="explanation"><strong>How the computation was derived</strong><ol className="derivation-list">{derivation.map((item, index) => <li key={`${item.title}-${index}`}><b>{item.title}</b><span>{item.detail}</span></li>)}</ol></div>}
+          <section className="distribution-block beneficiary-reconciliation"><strong>All named beneficiaries and substitutes</strong><p>Current totals are repeated here for cross-checking, not added again. Zero means no current allocation in this accounting; a second heir may still have a vested right to future delivery.</p>{Array.from(new Set(scenario.dispositions?.flatMap(d => [d.beneficiaryId, ...(d.substitutionIds ?? [])]) ?? [])).map(id => {
+            const person = scenario.persons.find(p => p.id === id);
+            const rows = scenario.expectedDistribution?.filter(a => a.personId === id) ?? [];
+            const linked = scenario.dispositions?.filter(d => d.beneficiaryId === id || d.substitutionIds?.includes(id)) ?? [];
+            return <div className="distribution-row" key={id}><span>{person?.name ?? id}<small>{person?.role}</small><small>{rows.length ? rows.map(a => a.rationale).join(' ') : 'No current share — inspect the linked gift for predecease, repudiation, reduction, or future/substitute rights.'}</small><details><summary>Linked gifts and outcome</summary>{linked.map(d => <p key={d.id}>{d.description}{scenario.conditions?.filter(c => c.id === d.conditionId || d.conditionIds?.includes(c.id)).map(c => <small key={c.id}>{c.text}</small>)}</p>)}</details></span><strong>{money(rows.reduce((sum,a) => sum+a.amount,0),scenario.currency)}</strong></div>;
+          })}</section>
         </div>
       )}
     </aside>
@@ -671,7 +678,7 @@ export default function App() {
       .then((data) => {
         const savedCases = Array.isArray(data.cases) ? activeCases(data.cases) : [];
         if (!savedCases.length) throw new Error("The saved case library is empty.");
-        if (!cancelled) setScenarios(savedCases);
+        if (!cancelled) setScenarios(currentCaseLibrary(savedCases));
       })
       .catch((error) => {
         console.warn(error);
@@ -684,7 +691,7 @@ export default function App() {
             fallbackCases = filtered;
           }
         } catch (localError) { console.warn(localError); }
-        if (!cancelled) setScenarios(activeCases(fallbackCases));
+        if (!cancelled) setScenarios(currentCaseLibrary(activeCases(fallbackCases)));
       })
       .finally(() => { if (!cancelled) setLibraryLoading(false); });
     return () => { cancelled = true; };

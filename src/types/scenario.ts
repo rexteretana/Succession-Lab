@@ -13,6 +13,8 @@ export interface Relationship {
   from: string;
   to: string;
   type: "spouse" | "parent" | "representation" | "substitution";
+  substitutionType?: TestamentaryCondition["substitutionType"];
+  dispositionId?: string;
 }
 
 export type PropertyType =
@@ -63,6 +65,8 @@ export interface TestamentaryDisposition {
   amount?: number;
   fraction?: number;
   conditionId?: string;
+  conditionIds?: string[];
+  substitutionType?: TestamentaryCondition["substitutionType"];
   substitutionIds?: string[];
   description?: string;
 }
@@ -132,6 +136,7 @@ export interface ComputationGuideStep {
   explanation: string;
   expression?: string;
   result?: number;
+  resultUnit?: "ratio" | "count";
 }
 
 export interface Scenario {

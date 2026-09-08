@@ -73,6 +73,9 @@ function validateScenario(value: unknown, line: number): Scenario {
     if (disposition.conditionId && !conditionIds.has(disposition.conditionId)) {
       throw new Error(`Line ${line}: disposition references an unknown condition.`);
     }
+    disposition.conditionIds?.forEach(id => {
+      if (!conditionIds.has(id)) throw new Error(`Line ${line}: disposition references an unknown additional condition.`);
+    });
     disposition.substitutionIds?.forEach((id) => {
       if (!personIds.has(id)) throw new Error(`Line ${line}: disposition references an unknown substitute.`);
     });
