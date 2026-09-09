@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { readFileSync, existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const output = resolve("public/cases/examples-17-20-concurring-secondary-heirs.jsonl");
@@ -332,5 +332,6 @@ const cases = [
   },
 ];
 
-writeFileSync(output, `${cases.map((item) => JSON.stringify(item)).join("\n")}\n`);
+const reviewed = existsSync(output) ? new Map(readFileSync(output, 'utf8').trim().split('\n').map(JSON.parse).filter(s => s.libraryRevision >= 5).map(s => [s.id, s])) : new Map();
+writeFileSync(output, `${cases.map((item) => JSON.stringify(reviewed.get(item.id) ?? item)).join("\n")}\n`);
 console.log(`Wrote ${cases.length} scenarios to ${output}`);

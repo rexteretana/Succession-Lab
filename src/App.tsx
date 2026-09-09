@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ConditionExplorer } from './components/ConditionExplorer';
-import { DistributionTreemap } from './components/DistributionTreemap';
+import { EstatePie } from './components/EstatePie';
+import { graphRelationships } from './engine/graphRelationships';
 import { GraphEdge } from './components/GraphEdge';
 import {
   Archive,
@@ -234,6 +235,8 @@ type GraphGesture =
   | { type: "node"; id: string; startX: number; startY: number; origin: Point };
 
 function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact: boolean }) {
+  scenario = { ...scenario, relationships: graphRelationships(scenario) };
+  const substitutionEdges = scenario.relationships.filter(r => r.type === 'substitution').filter((r,index,all) => all.findIndex(other => other.substitutionType === r.substitutionType && ((other.from === r.from && other.to === r.to) || (r.substitutionType === 'reciprocal' && other.from === r.to && other.to === r.from))) === index);
   const viewportRef = useRef<HTMLDivElement>(null);
   const gestureRef = useRef<GraphGesture | undefined>(undefined);
   const [zoom, setZoom] = useState(1);
@@ -254,7 +257,10 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
     });
   }
   const family = scenario.persons.filter((person) => familyIds.has(person.id));
-  const external = scenario.persons.filter((person) => !familyIds.has(person.id));
+  const linkedIds = new Set(scenario.relationships.flatMap(r => [r.from, r.to]));
+  scenario.dispositions?.forEach(d => linkedIds.add(d.beneficiaryId));
+  const external = scenario.persons.filter((person) => !familyIds.has(person.id) && linkedIds.has(person.id));
+  const unlinked = scenario.persons.filter(person => !familyIds.has(person.id) && !linkedIds.has(person.id));
   const levels = new Map<number, Person[]>();
   family.forEach((person) => {
     const level = person.generation ?? 0;
@@ -294,7 +300,7 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
   }
   if (testator) ascendantIds.delete(testator.id);
   if (spouseId) ascendantIds.delete(spouseId);
-  const canvasWidth = Math.max(1180, externalX + 240);
+  const canvasWidth = Math.max(1180, externalX + 240 + scenario.relationships.filter(r => r.type === 'substitution').length * 20);
   const canvasHeight = Math.max(590, ...[...positions.values()].map((point) => point.y + 180));
   const nodeWidth = 210;
   const nodeHeight = 78;
@@ -393,6 +399,7 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
   return (
     <section className={`graph-card focused-graph ${compact ? "compact-graph" : ""} ${fullscreen ? "graph-fullscreen" : ""}`} id="family-tree-view">
       <div className="panel-title graph-title"><div><strong>{compact ? "Family tree" : "Relationship map"}</strong><span>{family.length} family members · {external.length} outside {external.length === 1 ? "beneficiary" : "beneficiaries"} · {scenario.relationships.length} stated relationships</span></div>
+        {unlinked.length > 0 && <details className="unlinked-people"><summary>{unlinked.length} unlinked reference {unlinked.length === 1 ? 'person' : 'people'}</summary><p>No relationship or gift is supplied for these records; no connector is invented.</p>{unlinked.map(p => <p key={p.id}>{p.name} — {p.role}</p>)}</details>}
         <div className="graph-toolbar" aria-label="Family tree view controls">
           <button onClick={() => changeZoom(zoom - .1)} aria-label={`Zoom out. Current zoom ${Math.round(zoom * 100)} percent`} title={`Zoom out · ${Math.round(zoom * 100)}%`}><Minus size={16} /></button>
           <button onClick={() => changeZoom(zoom + .1)} aria-label={`Zoom in. Current zoom ${Math.round(zoom * 100)} percent`} title={`Zoom in · ${Math.round(zoom * 100)}%`}><Plus size={16} /></button>
@@ -404,7 +411,7 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
       <div className="graph-scroll interactive-viewport" ref={viewportRef} onWheel={onWheel} onPointerDown={beginPan} onPointerMove={moveGesture} onPointerUp={endGesture} onPointerCancel={endGesture}>
         <div className="graph-canvas relationship-canvas" style={{ width: canvasWidth, height: canvasHeight, minHeight: canvasHeight, transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})` }}>
           <svg className="relationship-lines" style={{ width: canvasWidth }} viewBox={`0 0 ${canvasWidth} ${canvasHeight}`} aria-hidden="true">
-            {scenario.relationships.filter((relationship) => relationship.type === "substitution").map((relationship, index) => {
+            {substitutionEdges.map((relationship, index) => {
               const from = positionOf(relationship.from); const to = positionOf(relationship.to);
               if (!from || !to) return null;
               const substitutionLabel = relationship.substitutionType?.replace('compedious', 'compendious').replace('feidicommissary', 'fideicommissary') ?? 'Substitution — type not supplied';
@@ -427,7 +434,7 @@ function RelationshipGraph({ scenario, compact }: { scenario: Scenario; compact:
               const endY = to.y;
               const represented = representationPairs.has(`${relationship.from}:${relationship.to}`);
               const middleY = startY + (endY - startY) / 2 + (represented ? index%2*30 : 0);
-              return <GraphEdge key={`parent-${index}`} className={`parent-edge ${represented ? "representation-edge" : ""}`} tone={edgeTone(relationship.from,relationship.to)} label={represented ? 'Representation' : undefined} d={`M ${startX} ${startY} V ${middleY} H ${to.x} V ${endY}`} />;
+              return <GraphEdge key={`parent-${index}`} className={`parent-edge ${represented ? "representation-edge" : ""}`} tone={edgeTone(relationship.from,relationship.to)} label={represented ? 'Representation' : relationship.label} d={`M ${startX} ${startY} V ${middleY} H ${to.x} V ${endY}`} />;
             })}
             {testator && external.flatMap((person) => scenario.dispositions?.filter((disposition) => disposition.beneficiaryId === person.id).slice(0, 1).map((disposition) => {
               const from = positionOf(testator.id); const to = positionOf(person.id);
@@ -494,7 +501,7 @@ function StoryPanel({ scenario }: { scenario?: Scenario }) {
     <div className="story-layout">
       <article className="story-narrative">
         <div className="testator-line"><span className="testator-avatar"><User size={22} /></span><div><small>{principalLabel}</small><strong>{principal?.name ?? "Not supplied"}</strong></div></div>
-        <p>{scenario.story?.narrative ?? "A narrative paragraph was not supplied in this JSONL. The structured facts below remain available for review."}</p>
+        {(scenario.story?.narrative ?? "A narrative paragraph was not supplied in this JSONL. The structured facts below remain available for review.").split(/\n\s*\n/).filter(Boolean).map((paragraph, index) => <p key={`${scenario.id}-narrative-${index}`}>{paragraph}</p>)}
         <div className="event-row">
           <span><CalendarBlank size={17} /><small>Died</small><strong>{deathDate ?? "Date not supplied"}</strong></span>
           <span><MapPin size={17} /><small>Place</small><strong>{scenario.story?.deathPlace ?? "Not supplied"}</strong></span>
@@ -553,7 +560,7 @@ function EstateView({ scenario }: { scenario?: Scenario }) {
 }
 
 function ComputationView({ scenario }: { scenario?: Scenario }) {
-  return <div className="workspace focused-workspace computation-workspace"><ViewHeading eyebrow="Rule engine" title="Computation" description="Compare the protected legitime and disposable portion visually, then follow each rule from the net estate to the final allocation." /><div className="computation-grid"><DistributionTreemap scenario={scenario} /><ComputationPanel scenario={scenario} /></div></div>;
+  return <div className="workspace focused-workspace computation-workspace"><ViewHeading eyebrow="Rule engine" title="Computation" description="Compare the protected legitime and disposable portion visually, then follow each rule from the net estate to the final allocation." /><div className="computation-grid"><EstatePie scenario={scenario} /><ComputationPanel scenario={scenario} /></div></div>;
 }
 
 

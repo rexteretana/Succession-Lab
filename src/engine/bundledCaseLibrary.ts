@@ -1,10 +1,11 @@
 import advancedCases from "../../public/cases/advanced-succession-mastery-15.jsonl?raw";
 import example16 from "../../public/cases/example-16-mercado-two-marriages.jsonl?raw";
 import examples17To20 from "../../public/cases/examples-17-20-concurring-secondary-heirs.jsonl?raw";
+import examples21To25 from "../../public/cases/examples-21-25-ascendants.jsonl?raw";
 import type { Scenario } from "../types/scenario";
 import { parseJsonl } from "./parseJsonl";
 
-const sources = [advancedCases, example16, examples17To20];
+const sources = [advancedCases, example16, examples17To20, examples21To25];
 
 export const bundledCaseLibrary: Scenario[] = Array.from(
   new Map(sources.flatMap(parseJsonl).map((scenario) => [scenario.id, scenario])).values(),

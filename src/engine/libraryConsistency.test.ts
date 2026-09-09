@@ -31,7 +31,7 @@ describe('cross-view case integrity', () => {
     const old={...bundledCaseLibrary[0],title:'Stale title'};
     const custom={...old,id:'custom-case'};
     const merged=currentCaseLibrary([old,custom]);
-    expect(merged).toHaveLength(21);
+    expect(merged).toHaveLength(26);
     expect(merged[0].title).not.toBe('Stale title');
     expect(merged.at(-1)).toEqual(custom);
   });

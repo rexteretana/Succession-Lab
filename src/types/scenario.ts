@@ -10,6 +10,8 @@ export interface Person {
 }
 
 export interface Relationship {
+  /** Authored clarification, e.g. adoptive parent or biological origin. */
+  label?: string;
   from: string;
   to: string;
   type: "spouse" | "parent" | "representation" | "substitution";
@@ -126,6 +128,8 @@ export interface ScenarioCaseDetails {
 export interface ExpectedDistribution {
   personId: string;
   amount: number;
+  /** Explicit protected component when an award also includes voluntary gifts. */
+  protectedAmount?: number;
   mechanisms: Array<"legitime" | "free_portion" | "devise" | "legacy" | "representation" | "substitution">;
   propertyIds?: string[];
   rationale?: string;

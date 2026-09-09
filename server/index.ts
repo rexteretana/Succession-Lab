@@ -2,6 +2,7 @@ import caseLibraryJsonl from "../public/cases/philippine-succession-cases.jsonl"
 import advancedLibraryJsonl from "../public/cases/advanced-succession-mastery-15.jsonl";
 import example16Jsonl from "../public/cases/example-16-mercado-two-marriages.jsonl";
 import concurringSecondaryJsonl from "../public/cases/examples-17-20-concurring-secondary-heirs.jsonl";
+import ascendantJsonl from "../public/cases/examples-21-25-ascendants.jsonl";
 import appHtml from "../dist/index.html";
 import appJavaScript from "../dist/assets/app.js";
 import appCss from "../dist/assets/index.css";
@@ -29,6 +30,7 @@ type StoredCase = {
   id: string;
   title: string;
   source?: { grNo?: string; date?: string };
+  libraryRevision?: number;
 };
 
 function json(data: unknown, status = 200) {
@@ -61,6 +63,7 @@ const bundledCases = [
   ...parseBundledCases(advancedLibraryJsonl),
   ...parseBundledCases(example16Jsonl),
   ...parseBundledCases(concurringSecondaryJsonl),
+  ...parseBundledCases(ascendantJsonl),
 ];
 
 async function seedMissingBundledCases(env: Env) {
@@ -70,6 +73,13 @@ async function seedMissingBundledCases(env: Env) {
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).bind(item.id, item.title, item.source?.grNo ?? null, item.source?.date ?? null, JSON.stringify(item), now, now));
   if (statements.length) await env.DB.batch(statements);
+  // Refresh the corrected shipped records without touching separately imported IDs.
+  const corrections = bundledCases.filter(item => (item.libraryRevision ?? 0) >= 5).map(item => {
+    const payload = JSON.stringify(item);
+    return env.DB.prepare("UPDATE cases SET title = ?, payload_json = ?, updated_at = ? WHERE id = ? AND payload_json <> ?")
+      .bind(item.title, payload, now, item.id, payload);
+  });
+  if (corrections.length) await env.DB.batch(corrections);
 }
 
 async function saveCases(cases: StoredCase[], env: Env) {

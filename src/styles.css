@@ -745,6 +745,29 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 1px
 .attached-edge-label.substitution-edge text { fill: #514aba; }
 .beneficiary-reconciliation { grid-column: 1 / -1; }
 .beneficiary-reconciliation p { font-size: 12px; line-height: 1.6; }
+.estate-pie-layout { display:grid; grid-template-columns:minmax(260px,1fr) minmax(280px,1fr); gap:28px; align-items:start; }
+.estate-pie-card { container-type:inline-size; }
+.estate-pie-card.treemap-fullscreen .treemap-card-body { overflow:auto; }
+@container(max-width:650px) { .estate-pie-layout { grid-template-columns:minmax(0,1fr); gap:12px; }.estate-pie-card .estate-pie-visual { position:static; }.estate-pie-card .estate-pie-visual svg { max-height:300px; }.estate-pie-legend button>span { min-width:0; }.estate-pie-legend strong { overflow-wrap:anywhere; } }
+.estate-pie-visual { position:sticky; top:0; }
+.estate-pie-visual svg { display:block; width:100%; max-height:65vh; filter:drop-shadow(0 10px 16px #473c7014); }
+.estate-pie-visual p { text-align:center; font-size:13px; line-height:1.7; min-height:48px; color:var(--muted); }
+.estate-pie-slice { stroke:#fff; stroke-width:2; cursor:pointer; }
+.estate-pie-slice:hover,.estate-pie-slice.selected,.estate-pie-slice:focus-visible { stroke:#252238; stroke-width:3; outline:none; }
+.pie-fraction-label { text-anchor:middle; dominant-baseline:central; fill:#fff; font-size:14px; font-weight:650; pointer-events:none; paint-order:stroke; stroke:#25223855; stroke-width:2px; }
+.pie-summary { display:flex; flex-wrap:wrap; gap:16px 24px; align-items:center; padding:0 0 20px; font-size:13px; font-variant-numeric:tabular-nums; }
+.pie-summary span { display:flex; gap:8px; align-items:center; }
+.pie-summary i,.estate-pie-legend i { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+.pie-purple { background:linear-gradient(135deg,#6836ba,#b68dde); }.pie-green { background:linear-gradient(135deg,#257957,#79cba7); }
+.estate-pie-legend { display:grid; gap:6px; }
+.estate-pie-legend button { display:flex; gap:12px; align-items:center; text-align:left; border:1px solid transparent; padding:12px; border-radius:10px; background:#f8f9fb; color:var(--text); }
+.estate-pie-legend button.selected { border-color:var(--accent); background:var(--accent-tint); }
+.estate-pie-legend button>span { display:grid; gap:4px; font-size:13px; }
+.estate-pie-legend button>span:last-child { margin-left:auto; text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.estate-pie-legend small { font-size:11px; color:var(--muted); }
+.unlinked-people { font-size:11px; max-width:220px; }.unlinked-people p { line-height:1.5; }
+@media(max-width:850px) { .estate-pie-layout { grid-template-columns:1fr; }.estate-pie-visual { position:static; }.estate-pie-visual svg { max-height:430px; } }
+@media(prefers-reduced-motion:no-preference) { .estate-pie-slice { transition:stroke .18s ease; }.estate-pie-legend button { transition:background .18s ease; } }
 .graph-legend .substitution-key-line { height: 2px; border: 0; background: linear-gradient(to right, #6764e8 0 8px, transparent 8px 12px, #6764e8 12px 14px, transparent 14px 18px); background-size: 18px 2px; }
 .graph-toolbar > button { width: 40px; height: 40px; }
 .calculation-name strong, .step, .distribution-row { font-size: 13px; }

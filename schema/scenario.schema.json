@@ -7,6 +7,7 @@
   "required": ["schemaVersion", "id", "title", "estate", "persons", "relationships", "computations"],
   "properties": {
     "schemaVersion": { "const": 1 },
+    "libraryRevision": { "type": "integer", "minimum": 1 },
     "id": { "type": "string", "minLength": 1 },
     "title": { "type": "string", "minLength": 1 },
     "difficulty": { "type": "integer", "minimum": 1 },
@@ -92,7 +93,10 @@
       "properties": {
         "from": { "type": "string", "minLength": 1 },
         "to": { "type": "string", "minLength": 1 },
-        "type": { "enum": ["spouse", "parent", "representation", "substitution"] }
+        "type": { "enum": ["spouse", "parent", "representation", "substitution"] },
+        "label": { "type": "string" },
+        "substitutionType": { "type": "string" },
+        "dispositionId": { "type": "string" }
       }
     },
     "disposition": {
@@ -109,6 +113,7 @@
         "fraction": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
         "conditionId": { "type": "string", "minLength": 1 },
         "substitutionIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+        "substitutionType": { "type": "string" },
         "description": { "type": "string" }
       },
       "allOf": [
@@ -247,9 +252,10 @@
       "properties": {
         "personId": { "type": "string", "minLength": 1 },
         "amount": { "$ref": "#/$defs/money" },
+        "protectedAmount": { "$ref": "#/$defs/money" },
         "mechanisms": {
           "type": "array",
-          "minItems": 1,
+          "minItems": 0,
           "uniqueItems": true,
           "items": { "enum": ["legitime", "free_portion", "devise", "legacy", "representation", "substitution"] }
         },

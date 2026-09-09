@@ -83,6 +83,9 @@ function validateScenario(value: unknown, line: number): Scenario {
   item.expectedDistribution?.forEach((allocation) => {
     if (!personIds.has(allocation.personId)) throw new Error(`Line ${line}: expected distribution references an unknown person.`);
     if (!Number.isFinite(allocation.amount) || allocation.amount < 0) throw new Error(`Line ${line}: expected distribution amounts must be non-negative numbers.`);
+    if (allocation.protectedAmount != null && (!Number.isFinite(allocation.protectedAmount) || allocation.protectedAmount < 0 || allocation.protectedAmount > allocation.amount || (allocation.protectedAmount > 0 && !allocation.mechanisms.includes("legitime")))) {
+      throw new Error(`Line ${line}: protectedAmount must be within the award and agree with its legitime classification.`);
+    }
     allocation.propertyIds?.forEach((id) => {
       if (!propertyIds.has(id)) throw new Error(`Line ${line}: expected distribution references an unknown property.`);
     });

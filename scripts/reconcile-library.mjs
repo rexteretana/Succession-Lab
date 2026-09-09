@@ -114,6 +114,7 @@ function advanced(s, index) {
 for(const file of files){
  const cases=readFileSync(`public/cases/${file}`,'utf8').trim().split('\n').map(JSON.parse);
  for(const [index,s] of cases.entries()){
+  if (s.libraryRevision >= 5) continue; // Preserve the separately reviewed ascendant replacement.
   if(s.libraryRevision===3) continue;
   if(file===files[0] && !s.dispositions.some(d=>d.id===`${s.id}-land`)) advanced(s,index);
   if(file===files[2] && !s.computationGuide.some(g=>g.title==='Resolve every operative clause')){

@@ -33,6 +33,7 @@ function protectedAmountFor(
   spouseShare: number,
   representedShares: Record<string, number>,
 ) {
+  if (allocation.protectedAmount != null) return allocation.protectedAmount;
   if (!allocation.mechanisms.includes("legitime")) return 0;
   if (allocation.mechanisms.includes("representation")) {
     return Math.min(allocation.amount, representedShares[allocation.personId] ?? allocation.amount);
